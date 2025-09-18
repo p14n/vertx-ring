@@ -42,6 +42,36 @@ This adapter implements the [Ring SPEC](https://github.com/ring-clojure/ring/blo
 (adapter/run-server handler {:port 8080})
 ```
 
+## Quick Start
+
+1. Clone this repository
+2. Start a REPL: `clj -M:dev`
+3. In the REPL:
+   ```clojure
+   (require 'user)
+   (user/start)  ; Starts server on port 8080
+   ```
+4. Test with curl: `curl http://localhost:8080/`
+5. Stop the server: `(user/stop)`
+
+## Examples
+
+See the `examples/` directory for more usage examples.
+
+## Building
+
+Build a JAR:
+```bash
+clj -T:build jar
+```
+
+## Testing
+
+Run tests:
+```bash
+clj -M:test
+```
+
 ## Development
 
 This project uses Clojure CLI tools with deps.edn.
