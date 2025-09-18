@@ -1,0 +1,22 @@
+# Clojure
+.cpcache/
+.nrepl-port
+.rebel_readline_history
+
+# Build artifacts
+target/
+*.jar
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.lsp/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
