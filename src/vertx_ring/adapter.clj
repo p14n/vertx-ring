@@ -1,25 +1,48 @@
 (ns vertx-ring.adapter
   "Ring adapter for Eclipse Vert.x"
-  (:require [clojure.tools.logging :as log])
-  (:import [io.vertx.core Vertx VertxOptions]
-           [io.vertx.core.http HttpServer HttpServerOptions HttpServerRequest HttpServerResponse]
-           [io.vertx.core.buffer Buffer]))
+  (:require
+   [clojure.string :as str]
+   [clojure.tools.logging :as log])
+  (:import
+   [io.vertx.core Vertx]
+   [io.vertx.core.http
+    Cookie
+    HttpServerOptions
+    HttpServerRequest
+    HttpServerResponse
+    HttpVersion]))
 
-(defn ^:private request->ring-map
+(defn request->ring-map
   "Convert a Vert.x HttpServerRequest to a Ring request map"
   [^HttpServerRequest request]
-  (let [uri (.uri request)
-        method (-> request .method .name .toLowerCase keyword)]
+  (let [method (-> request .method .name .toLowerCase keyword)
+        request-cookies (.cookies request)
+        cookies (and (seq request-cookies)
+                     (->> request-cookies
+                          (map (fn [^Cookie cookie]
+                                 (str (.getName cookie) "=" (.getValue cookie))))
+                          (str/join "; ")))
+        start-headers (if cookies
+                        {"cookie" cookies}
+                        {})]
     {:server-port (-> request .localAddress .port)
      :server-name (-> request .localAddress .host)
      :remote-addr (-> request .remoteAddress .host)
      :uri (.path request)
      :query-string (.query request)
-     :scheme :http  ; TODO: detect HTTPS
+     :scheme (or (some-> request .scheme keyword)
+                 :https)
      :request-method method
-     :protocol (str "HTTP/" (.version request))
-     :headers (into {} (map (fn [[k v]] [(clojure.string/lower-case k) v])
-                            (-> request .headers .entries)))
+     :protocol (condp = (.version request)
+                 HttpVersion/HTTP_1_0 "HTTP/1.0"
+                 HttpVersion/HTTP_1_1 "HTTP/1.1"
+                 HttpVersion/HTTP_2 "HTTP/2.0"
+                 "UNKNOWN")
+     :headers (into start-headers
+                    (map (fn [[k v]]
+                           (let [kl (str/lower-case k)]
+                             [kl v]))
+                         (-> request .headers .entries)))
      :body (.body request)}))  ; TODO: handle body properly for streaming
 
 (defn ^:private ring-response->vertx
