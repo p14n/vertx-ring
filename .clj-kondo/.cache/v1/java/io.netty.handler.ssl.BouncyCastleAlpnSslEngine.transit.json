@@ -1,1 +1,0 @@
-["^ ","~:members",["^ ","getApplicationProtocol",["~#set",[["^ ","~:flags",["^2",["~:method","~:public"]]]]],"getHandshakeApplicationProtocol",["^2",[["^ ","^3",["^2",["^4","^5"]]]]],"setHandshakeApplicationProtocolSelector",["^2",[["^ ","^3",["^2",["^4","^5"]]]]],"getHandshakeApplicationProtocolSelector",["^2",[["^ ","^3",["^2",["^4","^5"]]]]]]]
