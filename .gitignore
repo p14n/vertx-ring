@@ -2,6 +2,7 @@
 .cpcache/
 .nrepl-port
 .rebel_readline_history
+.clj-kondo/.cache
 
 # Build artifacts
 target/
