@@ -70,6 +70,29 @@
 
 (deftest test-response-mapping
   (testing "Response mapping from Ring to Vert.x"
-    ;; TODO: Add tests for ring-response->vertx function
-    ;; This would require mocking Vert.x HttpServerResponse
-    (is true "Placeholder test")))
+    (testing "defaults"
+      (let [r (->> {}
+                   (adapter/ring-response->vertx
+                    (helpers/mock-http-server-response))
+                   (.responseState))]
+        (is (= 200 (:status-code r)))
+        (is (= {} (:headers r)))
+        (is (= nil (:body r)))))
+    (testing "status"
+      (let [r (->> {:status 400}
+                   (adapter/ring-response->vertx
+                    (helpers/mock-http-server-response))
+                   (.responseState))]
+        (is (= 400 (:status-code r)))))
+    (testing "headers"
+      (let [r (->> {:headers {"hello" "world"}}
+                   (adapter/ring-response->vertx
+                    (helpers/mock-http-server-response))
+                   (.responseState))]
+        (is (= {"hello" "world"} (:headers r)))))
+    (testing "body string"
+      (let [r (->> {:body "Hello, World!"}
+                   (adapter/ring-response->vertx
+                    (helpers/mock-http-server-response))
+                   (.responseState))]
+        (is (= "Hello, World!" (:body r)))))))

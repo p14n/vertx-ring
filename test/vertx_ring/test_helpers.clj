@@ -64,3 +64,53 @@
           (^HttpServerResponse putHeader [this ^String name ^String value] this)
           (end [this] this)
           (^Future end [this ^String data] this))))))
+
+(defprotocol ResponseState
+  (responseState [item]))
+
+(defn mock-http-server-response
+  "Create a mock HttpServerResponse for testing"
+  ([] (mock-http-server-response {}))
+  ([{:keys [status-code headers ended? body]
+     :or {status-code 200
+          headers {}
+          ended? false
+          body nil}}]
+   (let [response-state (atom {:status-code status-code
+                               :headers headers
+                               :ended? ended?
+                               :body body})]
+     (reify
+       ResponseState
+       (responseState [_]
+         @response-state)
+       HttpServerResponse
+       (setStatusCode [this code]
+         (println "setStatusCode" code)
+         (swap! response-state assoc :status-code code)
+         this)
+       (getStatusCode [_]
+         (:status-code @response-state))
+       (^HttpServerResponse putHeader [this ^String name ^String value]
+         (swap! response-state update :headers assoc name value)
+         this)
+       (headers [_]
+         (let [header-map (reify MultiMap
+                            (entries [_]
+                              (map (fn [[k v]]
+                                     (reify java.util.Map$Entry
+                                       (getKey [_] k)
+                                       (getValue [_] v)))
+                                   (:headers @response-state))))]
+           header-map))
+       (end [this]
+         (swap! response-state assoc :ended? true)
+         this)
+       (^Future end [this ^String data]
+         (swap! response-state assoc :ended? true :body data)
+         (Future/succeededFuture))
+       #_(^Future end [this ^Buffer data]
+                      (swap! response-state assoc :ended? true :body data)
+                      (Future/succeededFuture))
+       (ended [_]
+         (:ended? @response-state))))))

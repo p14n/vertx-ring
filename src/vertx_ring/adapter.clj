@@ -5,6 +5,7 @@
    [clojure.tools.logging :as log])
   (:import
    [io.vertx.core Vertx]
+   [io.vertx.core.buffer Buffer]
    [io.vertx.core.http
     Cookie
     HttpServerOptions
@@ -45,7 +46,7 @@
                          (-> request .headers .entries)))
      :body (.body request)}))  ; TODO: handle body properly for streaming
 
-(defn ^:private ring-response->vertx
+(defn ring-response->vertx
   "Convert a Ring response map to Vert.x HttpServerResponse"
   [^HttpServerResponse response {:keys [status headers body]}]
   (when status
@@ -62,6 +63,7 @@
 
       (instance? java.io.InputStream body)
       ;; TODO: handle input stream properly
+      ;(.end response (Buffer/buffer (.getBytes body)))
       (.end response)
 
       (nil? body)
