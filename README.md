@@ -31,15 +31,30 @@ This adapter implements the [Ring SPEC](https://github.com/ring-clojure/ring/blo
 
 ## Usage
 
+### Async (default)
 ```clojure
 (require '[vertx-ring.adapter :as adapter])
+
+(defn handler [request respond raise]
+  (respond {:status 200
+            :headers {"Content-Type" "text/plain"}
+            :body "Hello, World!"}))
+
+(adapter/run-server handler {:port 8080})
+```
+
+### Sync (requires java.util.concurrent.ExecutorService)
+```clojure
+(require '[vertx-ring.adapter :as adapter])
+(import '[java.util.concurrent Executors])
 
 (defn handler [request]
   {:status 200
    :headers {"Content-Type" "text/plain"}
    :body "Hello, World!"})
 
-(adapter/run-server handler {:port 8080})
+(adapter/run-server handler {:port 8080
+                             :executor (Executors/newCachedThreadPool)})
 ```
 
 ## Quick Start

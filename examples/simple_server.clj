@@ -15,7 +15,7 @@
               "<p><strong>Headers:</strong></p>"
               "<ul>"
               (apply str (map (fn [[k v]] (str "<li>" k ": " v "</li>"))
-                             (:headers request)))
+                              (:headers request)))
               "</ul>"
               "</body></html>")})
 
@@ -32,13 +32,13 @@
 
 (defn router-handler
   "A simple router that dispatches to different handlers"
-  [request]
+  [request respond _]
   (cond
     (.startsWith (:uri request) "/api/")
-    (json-api-handler request)
-    
+    (respond (json-api-handler request))
+
     :else
-    (hello-handler request)))
+    (respond (hello-handler request))))
 
 (defn -main
   "Start the server"
@@ -51,7 +51,7 @@
 (comment
   ;; Start the server
   (-main)
-  
+
   ;; Test with curl:
   ;; curl http://localhost:8080/
   ;; curl http://localhost:8080/api/status
