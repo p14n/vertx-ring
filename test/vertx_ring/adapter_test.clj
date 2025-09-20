@@ -1,7 +1,10 @@
 (ns vertx-ring.adapter-test
-  (:require [clojure.test :refer :all]
-            [vertx-ring.adapter :as adapter]
-            [vertx-ring.test-helpers :as helpers]))
+  (:require
+   [clojure.test :refer :all]
+   [vertx-ring.adapter :as adapter]
+   [vertx-ring.test-helpers :as helpers])
+  (:import
+   [java.io ByteArrayInputStream]))
 
 (deftest test-basic-handler
   (testing "Basic Ring handler functionality"
@@ -95,4 +98,10 @@
                    (adapter/ring-response->vertx
                     (helpers/mock-http-server-response))
                    (.responseState))]
-        (is (= "Hello, World!" (:body r)))))))
+        (is (= "Hello, World!" (:body r)))))
+    (testing "body stream"
+      (let [r (->> {:body (ByteArrayInputStream. (.getBytes "Hello, World!"))}
+                   (adapter/ring-response->vertx
+                    (helpers/mock-http-server-response))
+                   (.responseState))]
+        (is (= "Hello, World!" (.toString (:body r))))))))

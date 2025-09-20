@@ -109,8 +109,8 @@
        (^Future end [this ^String data]
          (swap! response-state assoc :ended? true :body data)
          (Future/succeededFuture))
-       #_(^Future end [this ^Buffer data]
-                      (swap! response-state assoc :ended? true :body data)
-                      (Future/succeededFuture))
+       (^Future end [this ^Buffer data]
+         (swap! response-state assoc :ended? true :body data)
+         (Future/succeededFuture))
        (ended [_]
          (:ended? @response-state))))))

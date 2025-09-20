@@ -1,6 +1,7 @@
 (ns vertx-ring.adapter
   "Ring adapter for Eclipse Vert.x"
   (:require
+   [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.tools.logging :as log])
   (:import
@@ -62,9 +63,9 @@
       (.end response body)
 
       (instance? java.io.InputStream body)
-      ;; TODO: handle input stream properly
-      ;(.end response (Buffer/buffer (.getBytes body)))
-      (.end response)
+      (with-open [xout (java.io.ByteArrayOutputStream.)]
+        (io/copy body xout)
+        (.end response (Buffer/buffer (.toByteArray xout))))
 
       (nil? body)
       (.end response)
