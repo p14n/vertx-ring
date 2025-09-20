@@ -1,28 +1,43 @@
 (ns vertx-ring.adapter-test
   (:require
+   [babashka.http-client :as http]
    [clojure.test :refer :all]
    [vertx-ring.adapter :as adapter]
    [vertx-ring.test-helpers :as helpers])
   (:import
+   [java.util.concurrent Executors]
    [java.io ByteArrayInputStream]))
+
 
 (deftest test-basic-handler
   (testing "Basic Ring handler functionality"
-    (let [handler (fn [request]
-                    {:status 200
-                     :headers {"Content-Type" "text/plain"}
-                     :body "Hello, World!"})
+    (let [handler (fn [_ respond _]
+                    (respond {:status 200
+                              :headers {"Content-Type" "text/plain"}
+                              :body "Hello, World!"}))
           server (adapter/run-server handler {:port 8081})]
 
       ;; Give the server a moment to start
       (Thread/sleep 100)
+      (let [response (http/get "http://localhost:8081" {:timeout 1000})]
+        (is (= 200 (:status response)))
+        (is (= "Hello, World!" (:body response))))
+      (adapter/stop-server server))))
 
-      ;; TODO: Add actual HTTP client test here
-      ;; For now, just test that server starts and stops without error
+(deftest test-sync-handler
+  (testing "Basic Ring handler functionality"
+    (let [handler (fn [_]
+                    {:status 200
+                     :headers {"Content-Type" "text/plain"}
+                     :body "Hello, World!"})
+          server (adapter/run-server handler {:port 8082 :executor (Executors/newSingleThreadExecutor)})]
 
-      (adapter/stop-server server)
-
-      (is true "Server started and stopped successfully"))))
+      ;; Give the server a moment to start
+      (Thread/sleep 100)
+      (let [response (http/get "http://localhost:8082" {:timeout 1000})]
+        (is (= 200 (:status response)))
+        (is (= "Hello, World!" (:body response))))
+      (adapter/stop-server server))))
 
 (def default-request
   {:body nil
@@ -62,14 +77,20 @@
                  (helpers/mock-http-server-request)
                  (adapter/request->ring-map)))))
 
-    (testing "headers"
-      (is (= (assoc default-request
-                    :headers {"simple" "Value"
-                              "cookie" "cookie1=value1; cookie2=value2"})
-             (-> {:headers {"Simple" "Value"}
-                  :cookies {"cookie1" "value1" "cookie2" "value2"}}
-                 (helpers/mock-http-server-request)
-                 (adapter/request->ring-map)))))))
+    (testing "body"
+      (let [r (-> {:body "hello"}
+                  (helpers/mock-http-server-request)
+                  (adapter/request->ring-map))]
+        (is (= "hello" (-> r :body (.result) (.toString)))))))
+
+  (testing "headers"
+    (is (= (assoc default-request
+                  :headers {"simple" "Value"
+                            "cookie" "cookie1=value1; cookie2=value2"})
+           (-> {:headers {"Simple" "Value"}
+                :cookies {"cookie1" "value1" "cookie2" "value2"}}
+               (helpers/mock-http-server-request)
+               (adapter/request->ring-map))))))
 
 (deftest test-response-mapping
   (testing "Response mapping from Ring to Vert.x"
