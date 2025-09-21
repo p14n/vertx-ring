@@ -1,14 +1,8 @@
 (ns vertx-ring.test-helpers
-  (:import
-   [io.vertx.core Future MultiMap]
-   [io.vertx.core.buffer Buffer]
-   [io.vertx.core.http
-    Cookie
-    HttpMethod
-    HttpServerRequest
-    HttpServerResponse
-    HttpVersion]
-   [io.vertx.core.net SocketAddress]))
+  (:import [io.vertx.core.http Cookie HttpMethod HttpServerRequest HttpServerResponse HttpVersion]
+           [io.vertx.core.net SocketAddress]
+           [io.vertx.core Future MultiMap]
+           [io.vertx.core.buffer Buffer]))
 
 (defn mock-http-server-request
   "Create a mock HttpServerRequest for testing"

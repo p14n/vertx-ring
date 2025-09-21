@@ -31,7 +31,9 @@ This adapter implements the [Ring SPEC](https://github.com/ring-clojure/ring/blo
 
 ## Usage
 
-### Async (default)
+### Basic Usage
+
+#### Async (default)
 ```clojure
 (require '[vertx-ring.adapter :as adapter])
 
@@ -43,7 +45,7 @@ This adapter implements the [Ring SPEC](https://github.com/ring-clojure/ring/blo
 (adapter/run-server handler {:port 8080})
 ```
 
-### Sync (requires java.util.concurrent.ExecutorService)
+#### Sync (requires java.util.concurrent.ExecutorService)
 ```clojure
 (require '[vertx-ring.adapter :as adapter])
 (import '[java.util.concurrent Executors])
@@ -56,6 +58,55 @@ This adapter implements the [Ring SPEC](https://github.com/ring-clojure/ring/blo
 (adapter/run-server handler {:port 8080
                              :executor (Executors/newCachedThreadPool)})
 ```
+
+### Advanced Configuration
+
+For more control over Vert.x behavior, you can use the options helpers:
+
+```clojure
+(require '[vertx-ring.adapter :as adapter]
+         '[vertx-ring.options :as options])
+
+(defn handler [request respond raise]
+  (respond {:status 200
+            :headers {"Content-Type" "text/plain"}
+            :body "Hello, World!"}))
+
+;; Configure Vert.x options
+(def vertx-opts (options/map->vertx-options
+                 {:event-loop-pool-size 4
+                  :worker-pool-size 20
+                  :prefer-native-transport true}))
+
+;; Configure HTTP server options
+(def server-opts (options/map->http-server-options
+                  {:port 8080
+                   :host "0.0.0.0"
+                   :compression-supported true
+                   :tcp-keep-alive true
+                   :idle-timeout 30}))
+
+(adapter/run-server handler {:vertx-options vertx-opts
+                             :server-options server-opts})
+```
+
+### Configuration Options
+
+#### Vert.x Options
+- `:event-loop-pool-size` - Number of event loop threads
+- `:worker-pool-size` - Number of worker threads
+- `:prefer-native-transport` - Use native transport when available
+- `:ha-enabled` - Enable high availability
+- `:blocked-thread-check-interval` - Thread blocking check interval
+
+#### HTTP Server Options
+- `:port` - Server port (default 8080)
+- `:host` - Server host (default "localhost")
+- `:compression-supported` - Enable HTTP compression
+- `:tcp-keep-alive` - Enable TCP keep-alive
+- `:ssl` - Enable SSL/TLS
+- `:idle-timeout` - Connection idle timeout
+- `:max-websocket-frame-size` - Maximum WebSocket frame size
 
 ## Quick Start
 
