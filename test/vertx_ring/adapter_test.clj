@@ -85,4 +85,25 @@
       (is (= 500 (:status response)))
       (is (= "Async error" (:body response))))))
 
+(deftest test-echo
+  (testing "Body is echoed back"
+    (testing "in POST"
+      (let [handler (fn [request respond _]
+                      (respond {:body (:body request)
+                                :status 200
+                                :headers {"Content-Type" "text/plain"}}))
+            response (with-server handler #(http/post "http://localhost:8081" {:timeout 1000
+                                                                               :body "Woohoo!"}))]
+        (is (= 200 (:status response)))
+        (is (= "Woohoo!" (:body response)))))
+    (testing "in PUT"
+      (let [handler (fn [request respond _]
+                      (respond {:body (:body request)
+                                :status 200
+                                :headers {"Content-Type" "text/plain"}}))
+            response (with-server handler #(http/put "http://localhost:8081" {:timeout 1000
+                                                                              :body "Woohoo!"}))]
+        (is (= 200 (:status response)))
+        (is (= "Woohoo!" (:body response)))))))
+
 
