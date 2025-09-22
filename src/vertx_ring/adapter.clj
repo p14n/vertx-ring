@@ -82,11 +82,11 @@
         (io/copy body xout)
         (.end response (Buffer/buffer (.toByteArray xout))))
 
-      (nil? body)
-      (.end response)
-
       :else
       (.end response (str body))))
+
+  (when (nil? body)
+    (.end response))
 
   response)
 
@@ -137,19 +137,23 @@
                  (if (.succeeded result)
                    (let [is (some-> result (.result) (.getBytes) (ByteArrayInputStream.))
                          updated-request (assoc ring-request :body is)]
-                     (ring-handler updated-request
-                                   (fn [ring-response]
-                                     (ring-response->vertx vertx-response ring-response))
-                                   (fn [^Exception e]
-                                     (ring-response->vertx vertx-response {:status 500
-                                                                           :body (.getMessage e)}))))
+                     (try (ring-handler updated-request
+                                        (fn [ring-response]
+                                          (ring-response->vertx vertx-response ring-response))
+                                        (fn [^Exception e]
+                                          (ring-response->vertx vertx-response {:status 500
+                                                                                :body (.getMessage e)})))
+                          (catch Exception e
+                            (log-error e "Error processing request in handler")
+                            (ring-response->vertx vertx-response {:status 500
+                                                                  :body "Error processing request"}))))
                    (log-error (.cause result) "Error reading request body")))))))
       (catch Exception e
-        (log-error e "Error processing request")
+        (log-error e "Error processing request body")
         (-> request
             .response
             (.setStatusCode 500)
-            (.end "Internal Server Error"))))))
+            (.end "Error processing request"))))))
 
 (defn run-server
   "Start a Vert.x HTTP server with the given Ring handler.

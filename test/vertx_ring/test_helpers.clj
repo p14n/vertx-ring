@@ -97,9 +97,9 @@
                                        (getValue [_] v)))
                                    (:headers @response-state))))]
            header-map))
-       (end [this]
+       (^Future end [this]
          (swap! response-state assoc :ended? true)
-         this)
+         (Future/succeededFuture))
        (^Future end [this ^String data]
          (swap! response-state assoc :ended? true :body data)
          (Future/succeededFuture))
