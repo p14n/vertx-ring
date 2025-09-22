@@ -1,6 +1,6 @@
 # vertx-ring
 
-A Ring adapter for Eclipse Vert.x, providing a bridge between Clojure's Ring specification and Vert.x's reactive HTTP server.
+A Ring adapter for Eclipse Vert.x 5, providing a bridge between Clojure's Ring specification and Vert.x's reactive HTTP server.
 
 ## Overview
 
@@ -35,7 +35,7 @@ This adapter implements the [Ring SPEC](https://github.com/ring-clojure/ring/blo
 
 #### Async (default)
 ```clojure
-(require '[vertx-ring.adapter :as adapter])
+(require '[com.p14n.vertx-ring.adapter :as adapter])
 
 (defn handler [request respond raise]
   (respond {:status 200
@@ -47,7 +47,7 @@ This adapter implements the [Ring SPEC](https://github.com/ring-clojure/ring/blo
 
 #### Sync (requires java.util.concurrent.ExecutorService)
 ```clojure
-(require '[vertx-ring.adapter :as adapter])
+(require '[com.p14n.vertx-ring.adapter :as adapter])
 (import '[java.util.concurrent Executors])
 
 (defn handler [request]
@@ -64,8 +64,8 @@ This adapter implements the [Ring SPEC](https://github.com/ring-clojure/ring/blo
 For more control over Vert.x behavior, you can use the options helpers:
 
 ```clojure
-(require '[vertx-ring.adapter :as adapter]
-         '[vertx-ring.options :as options])
+(require '[com.p14n.vertx-ring.adapter :as adapter]
+         '[com.p14n.vertx-ring.options :as options])
 
 (defn handler [request respond raise]
   (respond {:status 200

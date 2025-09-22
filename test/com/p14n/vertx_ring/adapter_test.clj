@@ -1,8 +1,8 @@
-(ns vertx-ring.adapter-test
+(ns com.p14n.vertx-ring.adapter-test
   (:require
    [babashka.http-client :as http]
    [clojure.test :refer :all]
-   [vertx-ring.adapter :as adapter])
+   [com.p14n.vertx-ring.adapter :as adapter])
   (:import
    [java.util.concurrent Executors]))
 

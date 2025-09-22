@@ -1,4 +1,4 @@
-(ns vertx-ring.test-helpers
+(ns com.p14n.vertx-ring.test-helpers
   (:import [io.vertx.core.http Cookie HttpMethod HttpServerRequest HttpServerResponse HttpVersion]
            [io.vertx.core.net SocketAddress]
            [io.vertx.core Future MultiMap]

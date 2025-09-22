@@ -1,4 +1,4 @@
-(ns vertx-ring.options
+(ns com.p14n.vertx-ring.options
   (:import [io.vertx.core VertxOptions]
            [io.vertx.core.http HttpServerOptions]))
 

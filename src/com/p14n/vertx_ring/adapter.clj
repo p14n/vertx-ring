@@ -1,4 +1,4 @@
-(ns vertx-ring.adapter
+(ns com.p14n.vertx-ring.adapter
   "Ring adapter for Eclipse Vert.x"
   (:require
    [clojure.java.io :as io]

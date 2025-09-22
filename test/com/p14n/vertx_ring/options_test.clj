@@ -1,7 +1,7 @@
-(ns vertx-ring.options-test
+(ns com.p14n.vertx-ring.options-test
   (:require
    [clojure.test :refer :all]
-   [vertx-ring.options :as helpers])
+   [com.p14n.vertx-ring.options :as helpers])
   (:import
    [io.vertx.core VertxOptions]
    [io.vertx.core.http HttpServerOptions]))

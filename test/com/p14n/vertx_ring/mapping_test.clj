@@ -1,8 +1,8 @@
-(ns vertx-ring.mapping-test
+(ns com.p14n.vertx-ring.mapping-test
   (:require
    [clojure.test :refer :all]
-   [vertx-ring.adapter :as adapter]
-   [vertx-ring.test-helpers :as helpers])
+   [com.p14n.vertx-ring.adapter :as adapter]
+   [com.p14n.vertx-ring.test-helpers :as helpers])
   (:import
    [java.io ByteArrayInputStream]))
 

@@ -1,6 +1,6 @@
 (ns simple-server
   "Simple example of using vertx-ring adapter"
-  (:require [vertx-ring.adapter :as adapter]))
+  (:require [com.p14n.vertx-ring.adapter :as adapter]))
 
 (defn hello-handler
   "A simple Ring handler that returns a greeting"
