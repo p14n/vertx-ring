@@ -1,4 +1,5 @@
 # vertx-ring
+[![Clojure CI](https://github.com/p14n/vertx-ring/actions/workflows/clojure.yml/badge.svg)](https://github.com/p14n/vertx-ring/actions/workflows/clojure.yml)
 
 A Ring adapter for Eclipse Vert.x 5, providing a bridge between Clojure's Ring specification and Vert.x's reactive HTTP server.
 
