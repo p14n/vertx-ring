@@ -90,7 +90,33 @@
 
   response)
 
-(defn ^:private create-handler-sync
+(defn ^:private create-handler-callable
+  "Create a Callable to execute the handler"
+  [ring-handler updated-request vertx-response]
+  ^Callable
+  (fn []
+    (try
+      (let [ring-response (ring-handler updated-request)]
+        (ring-response->vertx vertx-response ring-response))
+      (catch Exception e
+        (ring-response->vertx vertx-response {:status 500
+                                              :body (.getMessage e)})))))
+
+(defn ^:private execute-handler
+  "Run the handler on thread"
+  [ring-handler updated-request vertx-response]
+  (try (ring-handler updated-request
+                     (fn [ring-response]
+                       (ring-response->vertx vertx-response ring-response))
+                     (fn [^Exception e]
+                       (ring-response->vertx vertx-response {:status 500
+                                                             :body (.getMessage e)})))
+       (catch Exception e
+         (log-error e "Error processing request in handler")
+         (ring-response->vertx vertx-response {:status 500
+                                               :body "Error processing request"}))))
+
+(defn ^:private create-handler
   "Create a Vert.x request handler from a Ring handler function"
   [ring-handler ^ExecutorService executor]
   (fn [^HttpServerRequest request]
@@ -105,15 +131,10 @@
                  (if (.succeeded result)
                    (let [is (some-> result (.result) (.getBytes) (ByteArrayInputStream.))
                          updated-request (assoc ring-request :body is)]
-                     (.submit executor
-                              ^Callable
-                              (fn []
-                                (try
-                                  (let [ring-response (ring-handler updated-request)]
-                                    (ring-response->vertx vertx-response ring-response))
-                                  (catch Exception e
-                                    (ring-response->vertx vertx-response {:status 500
-                                                                          :body (.getMessage e)}))))))
+                     (if executor
+                       (.submit executor
+                                (create-handler-callable ring-handler updated-request vertx-response))
+                       (execute-handler ring-handler updated-request vertx-response)))
                    (log-error (.cause result) "Error reading request body")))))))
       (catch Exception e
         (log-error e "Error processing request")
@@ -121,39 +142,6 @@
             .response
             (.setStatusCode 500)
             (.end "Internal Server Error"))))))
-
-(defn ^:private create-handler-async
-  "Create a Vert.x request handler from a Ring handler function"
-  [ring-handler]
-  (fn [^HttpServerRequest request]
-    (try
-      (let [ring-request (request->ring-map request)
-            vertx-response (.response request)]
-        (-> request
-            (.body)
-            (.onComplete
-             (reify io.vertx.core.Handler
-               (handle [_ result]
-                 (if (.succeeded result)
-                   (let [is (some-> result (.result) (.getBytes) (ByteArrayInputStream.))
-                         updated-request (assoc ring-request :body is)]
-                     (try (ring-handler updated-request
-                                        (fn [ring-response]
-                                          (ring-response->vertx vertx-response ring-response))
-                                        (fn [^Exception e]
-                                          (ring-response->vertx vertx-response {:status 500
-                                                                                :body (.getMessage e)})))
-                          (catch Exception e
-                            (log-error e "Error processing request in handler")
-                            (ring-response->vertx vertx-response {:status 500
-                                                                  :body "Error processing request"}))))
-                   (log-error (.cause result) "Error reading request body")))))))
-      (catch Exception e
-        (log-error e "Error processing request body")
-        (-> request
-            .response
-            (.setStatusCode 500)
-            (.end "Error processing request"))))))
 
 (defn run-server
   "Start a Vert.x HTTP server with the given Ring handler.
@@ -172,9 +160,7 @@
                  (Vertx/vertx))
          server-opts (or server-options (HttpServerOptions.))
          server (.createHttpServer vertx server-opts)
-         vertx-handler (if executor
-                         (create-handler-sync handler executor)
-                         (create-handler-async handler))]
+         vertx-handler (create-handler handler executor)]
 
      (log-info (format "Starting Vert.x server on %s:%d" host port))
 
